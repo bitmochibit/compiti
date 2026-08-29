@@ -1,4 +1,5 @@
 export const board = document.getElementById("board");
+export const dragLayer = document.getElementById("dragLayer");
 export const totalEl = document.getElementById("taskTotal");
 export const backdropBlur = document.getElementById("backdropBlur");
 export const settingsToggle = document.getElementById("settingsToggle");

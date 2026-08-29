@@ -1,4 +1,5 @@
 import { moveTaskTo, render } from "./board.js";
+import { dragLayer } from "./dom.js";
 
 const MAX_TILT = 16;
 const TILT_SENSITIVITY = 10;
@@ -32,13 +33,14 @@ export function startDrag(e, card, task, col) {
   const offsetX = e.clientX - rect.left;
   const offsetY = e.clientY - rect.top;
 
+  dragLayer.appendChild(card);
   card.setPointerCapture(e.pointerId);
+
   card.classList.add("dragging");
   card.style.position = "fixed";
   card.style.left = "0px";
   card.style.top = "0px";
   card.style.width = rect.width + "px";
-  card.style.zIndex = "1000";
 
   const useGsap = !!window.gsap;
   let xTo, yTo, rotTo;
@@ -86,13 +88,7 @@ export function startDrag(e, card, task, col) {
     const colEl = columnFromPoint(ev.clientX, ev.clientY);
 
     const cleanup = () => {
-      card.classList.remove("dragging");
-      card.style.position = "";
-      card.style.left = "";
-      card.style.top = "";
-      card.style.width = "";
-      card.style.zIndex = "";
-      if (useGsap) gsap.set(card, { clearProps: "transform,scale" });
+      card.remove();
 
       if (colEl) {
         const targetColId = colEl.dataset.colId;
