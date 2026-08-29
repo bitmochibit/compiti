@@ -34,7 +34,6 @@ export function startDrag(e, card, task, col) {
   const offsetY = e.clientY - rect.top;
 
   dragLayer.appendChild(card);
-  card.setPointerCapture(e.pointerId);
 
   card.classList.add("dragging");
   card.style.position = "fixed";
@@ -58,34 +57,77 @@ export function startDrag(e, card, task, col) {
 
   let lastX = e.clientX;
   let lastT = performance.now();
+  let lastClientX = e.clientX;
+  let lastClientY = e.clientY;
+  let ended = false;
 
-  function onMove(ev) {
-    const now = performance.now();
-    const dt = Math.max(now - lastT, 1);
-    const vx = (ev.clientX - lastX) / dt;
-    lastX = ev.clientX;
-    lastT = now;
-
-    const targetX = ev.clientX - offsetX;
-    const targetY = ev.clientY - offsetY;
+  function updateTargetPosition(clientX, clientY) {
+    const targetX = clientX - offsetX;
+    const targetY = clientY - offsetY;
 
     if (useGsap) {
       xTo(targetX);
       yTo(targetY);
-      rotTo(clamp(vx * TILT_SENSITIVITY, -MAX_TILT, MAX_TILT));
     } else {
       card.style.left = targetX + "px";
       card.style.top = targetY + "px";
     }
 
     document.querySelectorAll(".column").forEach(c => c.classList.remove("drag-over"));
-    const colEl = columnFromPoint(ev.clientX, ev.clientY);
+    const colEl = columnFromPoint(clientX, clientY);
     if (colEl) colEl.classList.add("drag-over");
   }
 
-  function finishDrag(ev) {
+  function onMove(ev) {
+    if (ended) return;
+
+    lastClientX = ev.clientX;
+    lastClientY = ev.clientY;
+
+    if (ev.buttons === 0) {
+      endDrag(ev.clientX, ev.clientY);
+      return;
+    }
+
+    const now = performance.now();
+    const dt = Math.max(now - lastT, 1);
+    const vx = (ev.clientX - lastX) / dt;
+    lastX = ev.clientX;
+    lastT = now;
+
+    updateTargetPosition(ev.clientX, ev.clientY);
+
+    if (useGsap) {
+      rotTo(clamp(vx * TILT_SENSITIVITY, -MAX_TILT, MAX_TILT));
+    }
+  }
+
+  function onPointerUp(ev) {
+    endDrag(ev.clientX, ev.clientY);
+  }
+
+  function onForceEnd() {
+    endDrag(lastClientX, lastClientY);
+  }
+
+  function onVisibilityChange() {
+    if (document.hidden) onForceEnd();
+  }
+
+  function endDrag(clientX, clientY) {
+    if (ended) return;
+    ended = true;
+
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    window.removeEventListener("pointercancel", onPointerUp);
+    window.removeEventListener("mouseup", onPointerUp);
+    window.removeEventListener("blur", onForceEnd);
+    document.removeEventListener("visibilitychange", onVisibilityChange);
+    document.removeEventListener("pointerleave", onForceEnd);
+
     document.querySelectorAll(".column").forEach(c => c.classList.remove("drag-over"));
-    const colEl = columnFromPoint(ev.clientX, ev.clientY);
+    const colEl = columnFromPoint(clientX, clientY);
 
     const cleanup = () => {
       card.remove();
@@ -93,7 +135,7 @@ export function startDrag(e, card, task, col) {
       if (colEl) {
         const targetColId = colEl.dataset.colId;
         const list = colEl.querySelector(".task-list");
-        const index = getDropIndex(list, ev.clientY, task.id);
+        const index = getDropIndex(list, clientY, task.id);
         moveTaskTo(task.id, col.id, targetColId, index);
       } else {
         render();
@@ -113,14 +155,11 @@ export function startDrag(e, card, task, col) {
     }
   }
 
-  function onUp(ev) {
-    card.removeEventListener("pointermove", onMove);
-    card.removeEventListener("pointerup", onUp);
-    card.removeEventListener("pointercancel", onUp);
-    finishDrag(ev);
-  }
-
-  card.addEventListener("pointermove", onMove);
-  card.addEventListener("pointerup", onUp);
-  card.addEventListener("pointercancel", onUp);
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
+  window.addEventListener("mouseup", onPointerUp);
+  window.addEventListener("blur", onForceEnd);
+  document.addEventListener("visibilitychange", onVisibilityChange);
+  document.addEventListener("pointerleave", onForceEnd);
 }
