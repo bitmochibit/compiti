@@ -36,6 +36,11 @@
     <input type="text" id="bgUrlInput" placeholder="image, gif or video link" autocomplete="off" spellcheck="false">
   </label>
   <button class="bg-clear-btn" id="bgClearBtn">clear background</button>
+  <label class="settings-row">
+    <span>Click to move</span>
+    <input type="checkbox" id="clickToMoveToggle">
+  </label>
+  <div class="settings-hint">use this if drag feels stuck, e.g. Wallpaper Engine</div>
 </div>
 
 <div class="background-layer" id="backgroundLayer">
@@ -48,6 +53,8 @@
 <div class="board" id="board"></div>
 
 <div class="drag-layer" id="dragLayer"></div>
+
+<div class="pick-hint" id="pickHint">tap a spot to drop it, tap the card again to cancel</div>
 
 <div class="modal-overlay" id="editModalOverlay">
   <div class="modal">

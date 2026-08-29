@@ -2,6 +2,7 @@ import { state, saveState, ACCENTS, newColumnId, newTaskId } from "./state.js";
 import { board, totalEl } from "./dom.js";
 import { openEditor } from "./modal.js";
 import { startDrag } from "./drag.js";
+import { isClickToMove, handleTaskClick, handleListClick, clearPick } from "./clickMove.js";
 
 if (window.gsap && window.Flip) {
   gsap.registerPlugin(Flip);
@@ -28,6 +29,7 @@ function countTasks() {
 }
 
 export function render() {
+  clearPick();
   board.innerHTML = "";
   state.columns.forEach(col => board.appendChild(renderColumn(col)));
   board.appendChild(renderAddColumnButton());
@@ -78,6 +80,7 @@ function renderColumn(col) {
   const list = document.createElement("div");
   list.className = "task-list";
   col.tasks.forEach(task => list.appendChild(renderTask(task, col)));
+  list.addEventListener("click", e => handleListClick(e, col, list));
   wrap.appendChild(list);
 
   wrap.appendChild(renderAddTaskButton(col));
@@ -188,7 +191,11 @@ function renderTask(task, col) {
 
   card.appendChild(renderTaskFoot(task, col));
 
-  card.addEventListener("pointerdown", e => startDrag(e, card, task, col));
+  if (isClickToMove()) {
+    card.addEventListener("click", e => handleTaskClick(e, card, task, col));
+  } else {
+    card.addEventListener("pointerdown", e => startDrag(e, card, task, col));
+  }
 
   return card;
 }

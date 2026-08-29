@@ -1,27 +1,12 @@
 import { moveTaskTo, render } from "./board.js";
 import { dragLayer } from "./dom.js";
+import { columnFromPoint, getDropIndex } from "./dndUtils.js";
 
 const MAX_TILT = 16;
 const TILT_SENSITIVITY = 10;
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
-}
-
-function columnFromPoint(x, y) {
-  const el = document.elementFromPoint(x, y);
-  if (!el) return null;
-  return el.closest(".column");
-}
-
-function getDropIndex(listEl, clientY, excludeId) {
-  const items = Array.from(listEl.querySelectorAll(".task")).filter(el => el.dataset.taskId !== excludeId);
-  for (let i = 0; i < items.length; i++) {
-    const rect = items[i].getBoundingClientRect();
-    const mid = rect.top + rect.height / 2;
-    if (clientY < mid) return i;
-  }
-  return items.length;
 }
 
 export function startDrag(e, card, task, col) {
@@ -83,11 +68,6 @@ export function startDrag(e, card, task, col) {
 
     lastClientX = ev.clientX;
     lastClientY = ev.clientY;
-
-    if (ev.buttons === 0) {
-      endDrag(ev.clientX, ev.clientY);
-      return;
-    }
 
     const now = performance.now();
     const dt = Math.max(now - lastT, 1);

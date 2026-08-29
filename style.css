@@ -127,6 +127,19 @@ html,body{
 
 .settings-row input[type="text"]:focus{ border-color:var(--amber); }
 
+.settings-row input[type="checkbox"]{
+  accent-color:var(--amber);
+  width:15px; height:15px;
+}
+
+.settings-hint{
+  font-family:var(--font-mono);
+  font-size:9.5px;
+  color:var(--text-dim);
+  opacity:0.7;
+  margin-top:-4px;
+}
+
 .settings-value{ flex:0 0 34px; text-align:right; color:var(--text); }
 
 .bg-clear-btn{
@@ -145,6 +158,27 @@ html,body{
 .drag-layer{
   position:fixed; inset:0; z-index:50;
   pointer-events:none;
+}
+
+.pick-hint{
+  position:fixed; left:50%; bottom:22px;
+  transform:translate(-50%,10px);
+  z-index:60;
+  background:rgba(15,18,26,0.92);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:8px 16px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--text-dim);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease, transform .18s ease;
+}
+
+.pick-hint.visible{
+  opacity:1;
+  transform:translate(-50%,0);
 }
 
 .board{
@@ -236,6 +270,15 @@ html,body{
   cursor:grabbing;
   will-change:transform;
   box-shadow:0 18px 34px rgba(0,0,0,0.5);
+}
+
+.task.picked{
+  border-color:var(--amber);
+  box-shadow:0 0 0 2px rgba(232,163,61,0.35);
+}
+
+body.click-to-move-mode .task{
+  cursor:pointer;
 }
 
 .task-title{

@@ -11,7 +11,7 @@ function tid() {
 
 function defaultState() {
   return {
-    settings: { blur: 0, dim: 0, bgUrl: "" },
+    settings: { blur: 0, dim: 0, bgUrl: "", clickToMove: false },
     columns: [
       {
         id: cid(),
@@ -36,8 +36,9 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (!parsed.settings) parsed.settings = { blur: 0, dim: 0, bgUrl: "" };
+      if (!parsed.settings) parsed.settings = { blur: 0, dim: 0, bgUrl: "", clickToMove: false };
       if (parsed.settings.bgUrl === undefined) parsed.settings.bgUrl = "";
+      if (parsed.settings.clickToMove === undefined) parsed.settings.clickToMove = false;
       return parsed;
     }
   } catch (e) {}

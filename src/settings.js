@@ -1,4 +1,5 @@
 import { state, saveState } from "./state.js";
+import { render } from "./board.js";
 import {
   backdropBlur,
   settingsToggle,
@@ -10,7 +11,8 @@ import {
   bgUrlInput,
   bgClearBtn,
   backgroundImage,
-  backgroundVideo
+  backgroundVideo,
+  clickToMoveToggle
 } from "./dom.js";
 
 const VIDEO_PATTERN = /\.(mp4|webm|ogg|mov)(\?.*)?$/i;
@@ -18,6 +20,7 @@ const VIDEO_PATTERN = /\.(mp4|webm|ogg|mov)(\?.*)?$/i;
 export function applySettings() {
   applyBlurAndDim();
   applyBackground();
+  applyInteractionMode();
 }
 
 function applyBlurAndDim() {
@@ -66,6 +69,11 @@ function applyBackground() {
   }
 }
 
+function applyInteractionMode() {
+  clickToMoveToggle.checked = !!state.settings.clickToMove;
+  document.body.classList.toggle("click-to-move-mode", !!state.settings.clickToMove);
+}
+
 settingsToggle.addEventListener("click", () => {
   settingsPanel.classList.toggle("open");
 });
@@ -101,4 +109,11 @@ bgUrlInput.addEventListener("keydown", e => {
 bgClearBtn.addEventListener("click", () => {
   bgUrlInput.value = "";
   commitBgUrl();
+});
+
+clickToMoveToggle.addEventListener("change", () => {
+  state.settings.clickToMove = clickToMoveToggle.checked;
+  applyInteractionMode();
+  saveState();
+  render();
 });
