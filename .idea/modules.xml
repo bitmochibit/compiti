@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/wallpaper-compiti.iml" filepath="$PROJECT_DIR$/wallpaper-compiti.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compiti.iml" filepath="$PROJECT_DIR$/compiti.iml" />
     </modules>
   </component>
 </project>
