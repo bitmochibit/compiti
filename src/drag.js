@@ -1,6 +1,7 @@
 import { moveTaskTo, render } from "./board.js";
 import { dragLayer } from "./dom.js";
-import { columnFromPoint, getDropIndex } from "./dndUtils.js";
+import { columnFromPoint, getDropIndex, showPlaceholder, removePlaceholder } from "./dndUtils.js";
+import { playPickup, playDrop, playHop } from "./audio.js";
 
 const MAX_TILT = 16;
 const TILT_SENSITIVITY = 10;
@@ -13,6 +14,8 @@ export function startDrag(e, card, task, col) {
   if (e.target.closest("button")) return;
   if (e.button !== undefined && e.button !== 0) return;
   e.preventDefault();
+
+  playPickup();
 
   const rect = card.getBoundingClientRect();
   const offsetX = e.clientX - rect.left;
@@ -44,6 +47,7 @@ export function startDrag(e, card, task, col) {
   let lastT = performance.now();
   let lastClientX = e.clientX;
   let lastClientY = e.clientY;
+  let lastColEl = null;
   let ended = false;
 
   function updateTargetPosition(clientX, clientY) {
@@ -60,7 +64,19 @@ export function startDrag(e, card, task, col) {
 
     document.querySelectorAll(".column").forEach(c => c.classList.remove("drag-over"));
     const colEl = columnFromPoint(clientX, clientY);
-    if (colEl) colEl.classList.add("drag-over");
+
+    if (colEl) {
+      colEl.classList.add("drag-over");
+      if (colEl !== lastColEl) {
+        lastColEl = colEl;
+      }
+      const list = colEl.querySelector(".task-list");
+      const index = getDropIndex(list, clientY, task.id);
+      showPlaceholder(list, index);
+    } else {
+      lastColEl = null;
+      removePlaceholder();
+    }
   }
 
   function onMove(ev) {
@@ -107,10 +123,13 @@ export function startDrag(e, card, task, col) {
     document.removeEventListener("pointerleave", onForceEnd);
 
     document.querySelectorAll(".column").forEach(c => c.classList.remove("drag-over"));
+    removePlaceholder();
     const colEl = columnFromPoint(clientX, clientY);
 
     const cleanup = () => {
+      if (useGsap) gsap.killTweensOf(card);
       card.remove();
+      playDrop();
 
       if (colEl) {
         const targetColId = colEl.dataset.colId;
@@ -122,17 +141,7 @@ export function startDrag(e, card, task, col) {
       }
     };
 
-    if (useGsap) {
-      gsap.to(card, {
-        rotation: 0,
-        scale: 1,
-        duration: 0.22,
-        ease: "power2.out",
-        onComplete: cleanup
-      });
-    } else {
-      cleanup();
-    }
+    cleanup();
   }
 
   window.addEventListener("pointermove", onMove);

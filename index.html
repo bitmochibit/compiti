@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Desk Board</title>
+  <title>Compiti</title>
+  <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Betania+Patmos&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -10,7 +14,7 @@
 <div class="topbar">
   <div class="brand">
     <span class="dot"></span>
-    <h1>Desk Board</h1>
+    <h1>Compiti</h1>
     <span class="task-badge" id="taskTotal">0 task</span>
   </div>
 
@@ -37,10 +41,38 @@
   </label>
   <button class="bg-clear-btn" id="bgClearBtn">clear background</button>
   <label class="settings-row">
+    <span>Accent color</span>
+    <input type="color" id="accentColorInput" value="#e8a33d">
+  </label>
+  <label class="settings-row">
     <span>Click to move</span>
     <input type="checkbox" id="clickToMoveToggle">
   </label>
-  <div class="settings-hint">use this if drag feels stuck, e.g. Wallpaper Engine</div>
+  <label class="settings-row">
+    <span>Mute sounds</span>
+    <input type="checkbox" id="muteToggle">
+  </label>
+  <div class="settings-divider">Custom sounds</div>
+  <label class="settings-row">
+    <span>Pickup sound</span>
+    <input type="text" id="soundPickupInput" placeholder="url, blank = default" autocomplete="off" spellcheck="false">
+  </label>
+  <label class="settings-row">
+    <span>Drop sound</span>
+    <input type="text" id="soundDropInput" placeholder="url, blank = default" autocomplete="off" spellcheck="false">
+  </label>
+  <label class="settings-row">
+    <span>Hop sound</span>
+    <input type="text" id="soundHopInput" placeholder="url, blank = default" autocomplete="off" spellcheck="false">
+  </label>
+  <button class="bg-clear-btn" id="soundsResetBtn">reset to default sounds</button>
+  <div class="settings-divider">Backup</div>
+  <div class="settings-backup-actions">
+    <button class="bg-clear-btn" id="exportSettingsBtn">export settings</button>
+    <button class="bg-clear-btn" id="importSettingsBtn">import settings</button>
+  </div>
+  <input type="file" id="importSettingsFile" accept="application/json" hidden>
+  <div class="settings-hint">use "click to move" if you don't like the dragging animation</div>
 </div>
 
 <div class="background-layer" id="backgroundLayer">
@@ -51,6 +83,13 @@
 <div class="backdrop-blur" id="backdropBlur"></div>
 
 <div class="board" id="board"></div>
+
+<button class="board-scroll-btn left" id="scrollLeftBtn" title="Scroll left">
+  <i class="hgi hgi-stroke hgi-rounded hgi-arrow-left-01"></i>
+</button>
+<button class="board-scroll-btn right" id="scrollRightBtn" title="Scroll right">
+  <i class="hgi hgi-stroke hgi-rounded hgi-arrow-right-01"></i>
+</button>
 
 <div class="drag-layer" id="dragLayer"></div>
 
@@ -65,6 +104,16 @@
     <div class="modal-row" id="editDescRow">
       <label>Note</label>
       <textarea id="editDescInput" rows="3" spellcheck="false"></textarea>
+    </div>
+    <div class="modal-row" id="editLabelsRow">
+      <label>Labels</label>
+      <input type="text" id="editLabelsInput" placeholder="comma, separated, labels" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="modal-row" id="editDoneRow">
+      <label class="modal-checkbox-label">
+        <input type="checkbox" id="editDoneInput">
+        <span>Mark tasks dropped here as completed</span>
+      </label>
     </div>
     <div class="modal-actions">
       <button class="modal-btn secondary" id="editCancelBtn">Cancel</button>

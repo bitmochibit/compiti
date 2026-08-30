@@ -12,8 +12,18 @@ import {
   bgClearBtn,
   backgroundImage,
   backgroundVideo,
-  clickToMoveToggle
+  clickToMoveToggle,
+  accentColorInput,
+  muteToggle,
+  soundPickupInput,
+  soundDropInput,
+  soundHopInput,
+  soundsResetBtn,
+  exportSettingsBtn,
+  importSettingsBtn,
+  importSettingsFile
 } from "./dom.js";
+import { previewSound } from "./audio.js";
 
 const VIDEO_PATTERN = /\.(mp4|webm|ogg|mov)(\?.*)?$/i;
 
@@ -21,6 +31,16 @@ export function applySettings() {
   applyBlurAndDim();
   applyBackground();
   applyInteractionMode();
+  applyAccentColor();
+  applyMute();
+  applySounds();
+}
+
+function applySounds() {
+  const sounds = state.settings.sounds || {};
+  soundPickupInput.value = sounds.pickup || "";
+  soundDropInput.value = sounds.drop || "";
+  soundHopInput.value = sounds.hop || "";
 }
 
 function applyBlurAndDim() {
@@ -74,6 +94,16 @@ function applyInteractionMode() {
   document.body.classList.toggle("click-to-move-mode", !!state.settings.clickToMove);
 }
 
+function applyAccentColor() {
+  const color = state.settings.accentColor || "#e8a33d";
+  document.documentElement.style.setProperty("--amber", color);
+  accentColorInput.value = color;
+}
+
+function applyMute() {
+  muteToggle.checked = !!state.settings.muted;
+}
+
 settingsToggle.addEventListener("click", () => {
   settingsPanel.classList.toggle("open");
 });
@@ -116,4 +146,85 @@ clickToMoveToggle.addEventListener("change", () => {
   applyInteractionMode();
   saveState();
   render();
+});
+
+accentColorInput.addEventListener("input", () => {
+  state.settings.accentColor = accentColorInput.value;
+  applyAccentColor();
+  saveState();
+});
+
+muteToggle.addEventListener("change", () => {
+  state.settings.muted = muteToggle.checked;
+  saveState();
+});
+
+function commitSound(key, input) {
+  const url = input.value.trim();
+  if (!state.settings.sounds) state.settings.sounds = { pickup: "", drop: "", hop: "" };
+  state.settings.sounds[key] = url;
+  saveState();
+  if (url) previewSound(url);
+}
+
+[
+  [soundPickupInput, "pickup"],
+  [soundDropInput, "drop"],
+  [soundHopInput, "hop"]
+].forEach(([input, key]) => {
+  input.addEventListener("change", () => commitSound(key, input));
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      input.blur();
+    }
+  });
+});
+
+soundsResetBtn.addEventListener("click", () => {
+  state.settings.sounds = { pickup: "", drop: "", hop: "" };
+  applySounds();
+  saveState();
+});
+
+function exportSettings() {
+  const data = JSON.stringify(state.settings, null, 2);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "desk-board-settings.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importSettings(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      state.settings = {
+        ...state.settings,
+        ...imported,
+        sounds: { ...state.settings.sounds, ...(imported.sounds || {}) }
+      };
+      applySettings();
+      saveState();
+    } catch (e) {
+      alert("That file isn't valid settings JSON.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+exportSettingsBtn.addEventListener("click", exportSettings);
+
+importSettingsBtn.addEventListener("click", () => importSettingsFile.click());
+
+importSettingsFile.addEventListener("change", () => {
+  const file = importSettingsFile.files[0];
+  if (file) importSettings(file);
+  importSettingsFile.value = "";
 });

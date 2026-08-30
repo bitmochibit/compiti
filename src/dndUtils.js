@@ -13,3 +13,29 @@ export function getDropIndex(listEl, clientY, excludeId) {
   }
   return items.length;
 }
+
+let placeholderEl = null;
+
+function ensurePlaceholder() {
+  if (!placeholderEl) {
+    placeholderEl = document.createElement("div");
+    placeholderEl.className = "drop-indicator";
+  }
+  return placeholderEl;
+}
+
+export function showPlaceholder(listEl, index) {
+  if (!listEl) return;
+  const el = ensurePlaceholder();
+  const items = Array.from(listEl.querySelectorAll(".task"));
+  const ref = items[index] || null;
+  if (el.parentElement !== listEl || el.nextSibling !== ref) {
+    listEl.insertBefore(el, ref);
+  }
+}
+
+export function removePlaceholder() {
+  if (placeholderEl && placeholderEl.parentElement) {
+    placeholderEl.parentElement.removeChild(placeholderEl);
+  }
+}

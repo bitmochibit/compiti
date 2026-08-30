@@ -1,7 +1,8 @@
-import { state, saveState, ACCENTS, newColumnId, newTaskId } from "./state.js";
+import { state, saveState, ACCENTS, newColumnId, newTaskObj, colorForLabel, parseColor, toHex } from "./state.js";
 import { board, totalEl } from "./dom.js";
 import { openEditor } from "./modal.js";
 import { startDrag } from "./drag.js";
+import { startColumnDrag } from "./columnDrag.js";
 import { isClickToMove, handleTaskClick, handleListClick, clearPick } from "./clickMove.js";
 
 if (window.gsap && window.Flip) {
@@ -48,6 +49,7 @@ function renderAddColumnButton() {
       id: newColumnId(),
       title: "New column",
       accent: ACCENTS[state.columns.length % ACCENTS.length],
+      done: false,
       tasks: []
     };
     state.columns.push(col);
@@ -57,14 +59,25 @@ function renderAddColumnButton() {
     openEditor({
       title: col.title,
       showDesc: false,
-      onSave: newTitle => {
+      showDone: true,
+      done: col.done,
+      onSave: (newTitle, _desc, _labels, done) => {
         col.title = newTitle || "Untitled";
+        applyColumnDone(col, done);
         saveState();
         render();
       }
     });
   });
   return addCol;
+}
+
+function applyColumnDone(col, done) {
+  const changed = col.done !== !!done;
+  col.done = !!done;
+  if (changed) {
+    col.tasks.forEach(t => { t.completed = col.done; });
+  }
 }
 
 function renderColumn(col) {
@@ -74,7 +87,7 @@ function renderColumn(col) {
   wrap.dataset.colId = col.id;
   wrap.style.setProperty("--col-accent", col.accent);
 
-  wrap.appendChild(renderColumnHead(col));
+  wrap.appendChild(renderColumnHead(col, wrap));
   wrap.appendChild(renderPalette(col));
 
   const list = document.createElement("div");
@@ -88,21 +101,41 @@ function renderColumn(col) {
   return wrap;
 }
 
-function renderColumnHead(col) {
+function renderColumnHead(col, wrap) {
   const head = document.createElement("div");
   head.className = "column-head";
-  head.innerHTML = '<span class="swatch"></span>';
+
+  const grip = document.createElement("span");
+  grip.className = "column-grip";
+  grip.textContent = "⠿";
+  grip.title = "Drag to move column";
+  grip.addEventListener("pointerdown", e => startColumnDrag(e, col, wrap));
+  head.appendChild(grip);
+
+  const swatch = document.createElement("span");
+  swatch.className = "swatch";
+  head.appendChild(swatch);
+
+  if (col.done) {
+    const badge = document.createElement("i");
+    badge.className = "hgi hgi-stroke hgi-rounded hgi-checkmark-badge-01";
+
+    head.appendChild(badge);
+  }
 
   const titleEl = document.createElement("div");
   titleEl.className = "column-title";
   titleEl.textContent = col.title;
-  titleEl.title = "Click to rename";
+  titleEl.title = "Click to rename or configure";
   titleEl.addEventListener("click", () => {
     openEditor({
       title: col.title,
       showDesc: false,
-      onSave: newTitle => {
+      showDone: true,
+      done: col.done,
+      onSave: (newTitle, _desc, _labels, done) => {
         col.title = newTitle || "Untitled";
+        applyColumnDone(col, done);
         saveState();
         render();
       }
@@ -134,16 +167,25 @@ function renderColumnHead(col) {
 function renderPalette(col) {
   const palette = document.createElement("div");
   palette.className = "palette";
-  ACCENTS.forEach(c => {
-    const b = document.createElement("b");
-    b.style.background = c;
-    b.addEventListener("click", () => {
-      col.accent = c;
-      saveState();
-      render();
-    });
-    palette.appendChild(b);
+
+  const { r, g, b } = parseColor(col.accent);
+
+  const picker = document.createElement("input");
+  picker.type = "color";
+  picker.className = "palette-color";
+  picker.title = "Column color";
+  picker.value = toHex(r, g, b);
+
+  picker.addEventListener("input", () => {
+    col.accent = picker.value;
+    const colEl = palette.closest(".column");
+    if (colEl) colEl.style.setProperty("--col-accent", col.accent);
   });
+  picker.addEventListener("change", () => {
+    saveState();
+  });
+
+  palette.appendChild(picker);
   return palette;
 }
 
@@ -153,7 +195,7 @@ function renderAddTaskButton(col) {
   addBtn.textContent = "+ add task";
   addBtn.addEventListener("click", () => {
     const flipState = captureFlipState();
-    const t = { id: newTaskId(), title: "New task", desc: "" };
+    const t = newTaskObj("New task", col.done);
     col.tasks.push(t);
     saveState();
     render();
@@ -162,9 +204,12 @@ function renderAddTaskButton(col) {
       title: t.title,
       desc: t.desc,
       showDesc: true,
-      onSave: (newTitle, newDesc) => {
+      showLabels: true,
+      labels: t.labels,
+      onSave: (newTitle, newDesc, labels) => {
         t.title = newTitle || "Untitled";
         t.desc = newDesc;
+        t.labels = labels || [];
         saveState();
         render();
       }
@@ -175,9 +220,22 @@ function renderAddTaskButton(col) {
 
 function renderTask(task, col) {
   const card = document.createElement("div");
-  card.className = "task";
+  card.className = "task" + (task.completed ? " completed" : "");
   card.dataset.taskId = task.id;
   card.dataset.flipId = task.id;
+
+  if (task.labels && task.labels.length) {
+    const labelsRow = document.createElement("div");
+    labelsRow.className = "task-labels";
+    task.labels.forEach(l => {
+      const chip = document.createElement("span");
+      chip.className = "task-label";
+      chip.textContent = l;
+      chip.style.setProperty("--label-color", colorForLabel(l));
+      labelsRow.appendChild(chip);
+    });
+    card.appendChild(labelsRow);
+  }
 
   const title = document.createElement("div");
   title.className = "task-title";
@@ -213,9 +271,12 @@ function renderTaskFoot(task, col) {
       title: task.title,
       desc: task.desc,
       showDesc: true,
-      onSave: (newTitle, newDesc) => {
+      showLabels: true,
+      labels: task.labels,
+      onSave: (newTitle, newDesc, labels) => {
         task.title = newTitle || "Untitled";
         task.desc = newDesc;
+        task.labels = labels || [];
         saveState();
         render();
       }
@@ -248,9 +309,8 @@ export function moveTaskTo(taskId, fromColId, toColId, index) {
 
   const flipState = captureFlipState();
   const [task] = fromCol.tasks.splice(idx, 1);
-  let insertAt = index;
-  if (fromCol === toCol && idx < insertAt) insertAt -= 1;
-  toCol.tasks.splice(insertAt, 0, task);
+  task.completed = toCol.done;
+  toCol.tasks.splice(index, 0, task);
   saveState();
   render();
   playFlip(flipState);
