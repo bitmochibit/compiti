@@ -1,0 +1,129 @@
+.settings-panel {
+  position: fixed;
+  top: 60px;
+  right: 28px;
+  z-index: 5;
+  background: rgba(15, 18, 26, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  min-width: 220px;
+
+  &.open {
+    display: flex;
+  }
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+
+  span:first-child {
+    flex: 0 0 90px;
+  }
+
+  input[type="range"] {
+    flex: 1;
+    accent-color: var(--amber);
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 8px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    outline: none;
+
+    &:focus {
+      border-color: var(--amber);
+    }
+  }
+
+  input[type="checkbox"] {
+    accent-color: var(--amber);
+    width: 15px;
+    height: 15px;
+  }
+
+  input[type="color"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 22px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+
+    &::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    &::-webkit-color-swatch {
+      border: none;
+      border-radius: 5px;
+    }
+  }
+}
+
+.settings-divider {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  opacity: 0.75;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+.settings-hint {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-dim);
+  opacity: 0.7;
+  margin-top: -4px;
+}
+
+.settings-value {
+  flex: 0 0 34px;
+  text-align: right;
+  color: var(--text);
+}
+
+.bg-clear-btn {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    color: var(--danger);
+  }
+}
+
+.settings-backup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: -2px;
+}

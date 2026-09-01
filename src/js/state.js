@@ -1,4 +1,4 @@
-const STORAGE_KEY = "desk-board-state-v3";
+const STORAGE_KEY = "compiti-state-v3";
 export const ACCENTS = ["#e8a33d", "#3dbfa8", "#8b7ee8", "#d9776f", "#5fb0e0"];
 export const LABEL_COLORS = [
   "#e8a33d", "#3dbfa8", "#8b7ee8", "#d9776f",
