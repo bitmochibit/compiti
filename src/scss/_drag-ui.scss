@@ -1,0 +1,92 @@
+.drag-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.pick-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translate(-50%, 10px);
+  z-index: 60;
+  background: rgba(15, 18, 26, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+
+  &.visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.drop-indicator {
+  height: 3px;
+  margin: 2px 2px;
+  border-radius: 2px;
+  background: var(--amber);
+  box-shadow: 0 0 8px 1px rgba(232, 163, 61, 0.55);
+  animation: dropPulse 0.9s ease-in-out infinite;
+}
+
+@keyframes dropPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.board-scroll-btn {
+  position: fixed;
+  top: calc(50% + 32px);
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(15, 18, 26, 0.85);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, color 0.15s, border-color 0.15s, transform 0.15s;
+
+  &.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  &:hover {
+    color: var(--text);
+    border-color: var(--amber);
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(0.92);
+  }
+
+  &.left {
+    left: 8px;
+  }
+
+  &.right {
+    right: 8px;
+  }
+}

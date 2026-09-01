@@ -193,7 +193,7 @@ function exportSettings() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "desk-board-settings.json";
+  a.download = "compiti-settings.json";
   document.body.appendChild(a);
   a.click();
   a.remove();
